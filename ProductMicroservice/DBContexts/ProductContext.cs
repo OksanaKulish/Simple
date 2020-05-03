@@ -32,12 +32,18 @@ namespace ProductMicroservice.DBContexts
                     Name = "Grocery",
                     Description = "Grocery Items",
                 },
-                 new Category
-                 {
-                     Id = 4,
-                     Name = "Animals",
-                     Description = "Animals Items",
-                 }
+                new Category
+                {
+                    Id = 4,
+                    Name = "Animals",
+                    Description = "Animals Items",
+                },
+                new Category
+                {
+                    Id = 5,
+                    Name = "Food",
+                    Description = "Products",
+                }
             );
         }
 
