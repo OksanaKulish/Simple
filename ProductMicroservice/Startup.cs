@@ -20,6 +20,7 @@ namespace ProductMicroservice
 {
     public class Startup
     {
+        private readonly string AllowSpecificOrigins = "_allowSpecificOrigins";
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -30,6 +31,17 @@ namespace ProductMicroservice
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(AllowSpecificOrigins,
+                    builder =>
+                    {
+                        builder.WithOrigins("*")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                    });
+            });
+
             services.AddControllers();
             services.AddDbContext<ProductContext>(o => o.UseSqlServer(_configuration.GetConnectionString("ProductDB")));
             services.AddTransient<IProductRepository, ProductRepository>();
@@ -45,6 +57,8 @@ namespace ProductMicroservice
             }
 
             var swaggerRoutePrefix = _configuration["Swagger:RoutePrefix"];
+
+            app.UseCors(AllowSpecificOrigins);
 
             app.UseSwagger();
 
