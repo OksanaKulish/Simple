@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ProductMicroservice.DBContexts;
 using ProductMicroservice.Repository;
@@ -31,6 +34,10 @@ namespace ProductMicroservice
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            string securityKey = "This_is_super_security_key$smesk.in";
+
+            var symetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKey));
+
             services.AddCors(options =>
             {
                 options.AddPolicy(AllowSpecificOrigins,
@@ -41,6 +48,22 @@ namespace ProductMicroservice
                         .AllowAnyMethod();
                     });
             });
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        //what to validate
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateIssuerSigningKey = true,
+                        //setup validate data
+                        ValidIssuer = "smesk.in",
+                        ValidAudience = "readers",
+                        IssuerSigningKey = symetricSecurityKey
+                    };
+                });
 
             services.AddControllers();
             services.AddDbContext<UserContext>(o => o.UseSqlServer(_configuration.GetConnectionString("UserDB")));
@@ -71,6 +94,10 @@ namespace ProductMicroservice
 
             app.UseRouting();
 
+            // who are you?
+            app.UseAuthentication();
+
+            //are you allowed?
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
